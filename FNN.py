@@ -1,9 +1,9 @@
 import torch 
 import torch.nn as nn
-
+import os
 
 # Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 # Fully connected neural network with one hidden layer
@@ -37,6 +37,7 @@ testing_label = torch.load('../data/testing_label.pt')'''
 
 # loading training and testing data for stock return prediction
 data = torch.load('../data/stock_return.pt')
+sample_num = data.shape[0]
 training_data = data[sample_num//5:,:-1]
 training_label = data[sample_num//5:,-1:]
 testing_data = data[:sample_num//5,:-1]
@@ -47,14 +48,17 @@ testing_label = data[:sample_num//5,-1:]
 input_size = training_data.shape[1]
 hidden_size = 100
 output_size = testing_label.shape[1]
-num_epochs = 500
-batch_size = 10000
-learning_rate = 0.0001
+num_epochs = 50000
+batch_size = 5000000
+learning_rate = 0.001
 trainsample_num = training_data.shape[0]
 testsample_num = testing_data.shape[0]
 
 
 model = NeuralNet(input_size, hidden_size, output_size).to(device)
+if os.path.isfile('../models/FNN_model.pth'):
+    model.load_state_dict(torch.load('../models/FNN_model.pth'))
+    model.eval()
 #model = torch.load('trained_model/FNN_model.ckpt')
 print("********************* Numerical report for FNN model *********************")
 
@@ -111,4 +115,4 @@ with torch.no_grad():
 # Save the model checkpoint
 model.log = []
 model.log.append('500 epochs using Adam optimizer with learning rate 0.0001')
-torch.save(model.state_dict(), 'model/FNN_model.ckpt')
+torch.save(model.state_dict(), '../models/FNN_model.pth')
